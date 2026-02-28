@@ -1,0 +1,37 @@
+opencv-python
+numpy
+ultralytics
+psycopg2-binary
+pandas
+matplotlib
+seaborn
+flask
+python-dotenv
+torchreid
+
+#pip install torch==2.5.1+cu121 torchvision==0.20.1+cu121 torchaudio==2.5.1 --index-url https://download.pytorch.org/whl/cu121
+
+# STEP 4️⃣ VERIFY (DO NOT SKIP)
+# python - << EOF
+# import torch, ultralytics, torchreid
+# print("Torch:", torch.__version__)
+# print("CUDA:", torch.cuda.is_available())
+# print("GPU:", torch.cuda.get_device_name(0))
+# print("All good")
+# EOF
+
+
+# Expected:
+
+# Torch: 2.5.1+cu121
+# CUDA: True
+# GPU: RTX ...
+# All good
+# ❌ WHY YOU MUST NOT KEEP cu130
+# Reason	Impact
+# Ultralytics block	❌ Crash
+# YOLO tracker instability	❌
+# TorchReID not tested	❌
+# Future updates break	❌
+
+# cu130 = too bleeding edge right now.

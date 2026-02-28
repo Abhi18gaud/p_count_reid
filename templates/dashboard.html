@@ -1,0 +1,442 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Retail Analytics Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .card h3 {
+            margin-top: 0;
+            color: #333;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+        .metric {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 10px 0;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 5px;
+        }
+        .metric-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+        }
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-top: 20px;
+        }
+        .date-filter {
+            margin: 20px 0;
+            text-align: center;
+        }
+        .date-filter input {
+            padding: 8px;
+            margin: 0 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .date-filter button {
+            padding: 8px 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .date-filter button:hover {
+            background: #5a6fd8;
+        }
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        .table th, .table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        .table th {
+            background-color: #667eea;
+            color: white;
+        }
+        .table tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        .refresh-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            z-index: 1000;
+        }
+        .refresh-btn:hover {
+            background: #218838;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🏪 Retail Analytics Dashboard</h1>
+        <p>Real-time customer behavior analytics and insights</p>
+    </div>
+
+    <button class="refresh-btn" onclick="refreshData()">🔄 Refresh</button>
+
+    <div class="date-filter">
+        <label>From:</label>
+        <input type="date" id="startDate" value="{{ start_date }}">
+        <label>To:</label>
+        <input type="date" id="endDate" value="{{ end_date }}">
+        <button onclick="updateDateRange()">Update</button>
+    </div>
+
+    <div class="dashboard">
+        <!-- Footfall Metrics -->
+        <div class="card">
+            <h3>🚪 Footfall Analytics</h3>
+            <div class="metric">
+                <span>Total Visitors</span>
+                <span class="metric-value" id="totalFootfall">-</span>
+            </div>
+            <div class="metric">
+                <span>Active Sessions</span>
+                <span class="metric-value" id="activeSessions">-</span>
+            </div>
+            <div class="metric">
+                <span>Avg. Visit Duration</span>
+                <span class="metric-value" id="avgDuration">-</span>
+            </div>
+            <div class="chart-container">
+                <canvas id="footfallChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Department Analytics -->
+        <div class="card">
+            <h3>🏬 Department Performance</h3>
+            <div class="chart-container">
+                <canvas id="departmentChart"></canvas>
+            </div>
+            <table class="table" id="deptTable">
+                <thead>
+                    <tr>
+                        <th>Department</th>
+                        <th>Visitors</th>
+                        <th>Visits</th>
+                        <th>Avg. Dwell</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+
+        <!-- Service Analytics -->
+        <div class="card">
+            <h3>👥 Service Analytics</h3>
+            <div class="metric">
+                <span>Attended</span>
+                <span class="metric-value" id="attendedCount">-</span>
+            </div>
+            <div class="metric">
+                <span>Unattended</span>
+                <span class="metric-value" id="unattendedCount">-</span>
+            </div>
+            <div class="metric">
+                <span>Avg. Wait Time</span>
+                <span class="metric-value" id="avgWaitTime">-</span>
+            </div>
+            <div class="chart-container">
+                <canvas id="serviceChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Customer Journey -->
+        <div class="card">
+            <h3>🗺️ Customer Journey</h3>
+            <div class="chart-container">
+                <canvas id="journeyChart"></canvas>
+            </div>
+            <div id="journeyDetails"></div>
+        </div>
+
+        <!-- Peak Hours -->
+        <div class="card">
+            <h3>⏰ Peak Hours Analysis</h3>
+            <div class="chart-container">
+                <canvas id="peakHoursChart"></canvas>
+            </div>
+        </div>
+
+        <!-- First Department Analysis -->
+        <div class="card">
+            <h3>🎯 First Department Analysis</h3>
+            <div class="chart-container">
+                <canvas id="firstDeptChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let charts = {};
+
+        function initCharts() {
+            // Footfall Chart
+            const footfallCtx = document.getElementById('footfallChart').getContext('2d');
+            charts.footfall = new Chart(footfallCtx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Daily Footfall',
+                        data: [],
+                        borderColor: '#667eea',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+
+            // Department Chart
+            const deptCtx = document.getElementById('departmentChart').getContext('2d');
+            charts.department = new Chart(deptCtx, {
+                type: 'bar',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Total Visits',
+                        data: [],
+                        backgroundColor: '#28a745'
+                    }, {
+                        label: 'Unique Visitors',
+                        data: [],
+                        backgroundColor: '#ffc107'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+
+            // Service Chart
+            const serviceCtx = document.getElementById('serviceChart').getContext('2d');
+            charts.service = new Chart(serviceCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Attended', 'Unattended'],
+                    datasets: [{
+                        data: [0, 0],
+                        backgroundColor: ['#28a745', '#dc3545']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+
+            // Journey Chart
+            const journeyCtx = document.getElementById('journeyChart').getContext('2d');
+            charts.journey = new Chart(journeyCtx, {
+                type: 'bar',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Visit Count',
+                        data: [],
+                        backgroundColor: '#17a2b8'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    indexAxis: 'y',
+                    scales: {
+                        x: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+
+            // Peak Hours Chart
+            const peakCtx = document.getElementById('peakHoursChart').getContext('2d');
+            charts.peakHours = new Chart(peakCtx, {
+                type: 'bar',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Visitors per Hour',
+                        data: [],
+                        backgroundColor: '#6f42c1'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+
+            // First Department Chart
+            const firstDeptCtx = document.getElementById('firstDeptChart').getContext('2d');
+            charts.firstDept = new Chart(firstDeptCtx, {
+                type: 'pie',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        data: [],
+                        backgroundColor: ['#ff6384', '#36a2eb', '#ffce56', '#4bc0c0', '#9966ff']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+        }
+
+        function refreshData() {
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            
+            fetch(`/api/analytics?start_date=${startDate}&end_date=${endDate}`)
+                .then(response => response.json())
+                .then(data => {
+                    updateDashboard(data);
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+        function updateDashboard(data) {
+            // Update metrics
+            document.getElementById('totalFootfall').textContent = data.footfall.total || 0;
+            document.getElementById('activeSessions').textContent = data.footfall.active || 0;
+            document.getElementById('avgDuration').textContent = data.footfall.avg_duration || '0m';
+
+            document.getElementById('attendedCount').textContent = data.service.attended || 0;
+            document.getElementById('unattendedCount').textContent = data.service.unattended || 0;
+            document.getElementById('avgWaitTime').textContent = data.service.avg_wait || '0s';
+
+            // Update footfall chart
+            charts.footfall.data.labels = data.footfall.daily.map(d => d.date);
+            charts.footfall.data.datasets[0].data = data.footfall.daily.map(d => d.count);
+            charts.footfall.update();
+
+            // Update department chart
+            charts.department.data.labels = data.departments.map(d => d.name);
+            charts.department.data.datasets[0].data = data.departments.map(d => d.total_visits);
+            charts.department.data.datasets[1].data = data.departments.map(d => d.unique_customers);
+            charts.department.update();
+
+            // Update department table
+            const deptTable = document.getElementById('deptTable').getElementsByTagName('tbody')[0];
+            deptTable.innerHTML = '';
+            data.departments.forEach(dept => {
+                const row = deptTable.insertRow();
+                row.innerHTML = `
+                    <td>${dept.name}</td>
+                    <td>${dept.unique_customers}</td>
+                    <td>${dept.total_visits}</td>
+                    <td>${dept.avg_dwell_time}s</td>
+                `;
+            });
+
+            // Update service chart
+            charts.service.data.datasets[0].data = [data.service.attended, data.service.unattended];
+            charts.service.update();
+
+            // Update journey chart
+            if (data.journey) {
+                charts.journey.data.labels = data.journey.map(j => j.department);
+                charts.journey.data.datasets[0].data = data.journey.map(j => j.count);
+                charts.journey.update();
+            }
+
+            // Update peak hours chart
+            if (data.peak_hours) {
+                charts.peakHours.data.labels = data.peak_hours.map(h => h.hour);
+                charts.peakHours.data.datasets[0].data = data.peak_hours.map(h => h.visitors);
+                charts.peakHours.update();
+            }
+
+            // Update first department chart
+            if (data.first_department) {
+                charts.firstDept.data.labels = data.first_department.map(d => d.department);
+                charts.firstDept.data.datasets[0].data = data.first_department.map(d => d.count);
+                charts.firstDept.update();
+            }
+        }
+
+        function updateDateRange() {
+            refreshData();
+        }
+
+        // Initialize on load
+        window.onload = function() {
+            initCharts();
+            refreshData();
+            
+            // Auto-refresh every 30 seconds
+            setInterval(refreshData, 30000);
+        };
+    </script>
+</body>
+</html>
+        

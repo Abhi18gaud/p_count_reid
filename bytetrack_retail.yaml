@@ -1,0 +1,10 @@
+tracker_type: bytetrack
+
+# REQUIRED BYTE TRACK CONFIGURATION
+track_high_thresh: 0.6
+track_low_thresh: 0.2
+new_track_thresh: 0.7
+track_buffer: 60        # ⏱️ tolerance for missed frames (≥60 frames required)
+match_thresh: 0.8
+fuse_score: True
+max_time_lost: 60       # ⏱️ maximum time lost before track termination (≥60 frames required)
