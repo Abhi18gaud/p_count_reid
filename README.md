@@ -1,6 +1,6 @@
 # 🏪 Retail Analytics Tracking System
 
-A comprehensive computer vision-based retail analytics system that tracks customer behavior, department visits, and service interactions in real-time.
+A comprehensive computer vision-based retail analytics system that tracks customer behavior, department visits, and service interactions in real-time with advanced employee detection and management.
 
 ## 📊 Features
 
@@ -13,6 +13,16 @@ A comprehensive computer vision-based retail analytics system that tracks custom
 - ✅ **Service Interaction Tracking**: Monitor attended vs unattended customers
 - ✅ **Wait Time Analysis**: Track customer wait times for service
 
+### 🚀 Employee Detection & Management System
+- 🧠 **OSNet Face Recognition**: Advanced employee face detection using `osnet_x1_0_msmt17.pth`
+- 📸 **Image Upload Registration**: Register employees from photos or webcam
+- 💾 **12-Hour Body Feature Storage**: Capture and store body features after face detection
+- 🚫 **No Repeated Face Scans**: Use body features for identification within 12 hours
+- 👥 **Employee Name Display**: Show employee names instead of generic IDs
+- 🎯 **Employee Exclusion**: Automatically exclude employees from customer analytics
+- ⏰ **Active Shift Management**: Track employee shifts with automatic expiration
+- 🔄 **Real-time Employee Updates**: Add/remove employees dynamically
+
 ### Technical Features
 - 🎥 Real-time video processing with YOLOv8
 - 🧠 Advanced person re-identification with encoding similarity
@@ -20,6 +30,8 @@ A comprehensive computer vision-based retail analytics system that tracks custom
 - 🌐 Web-based analytics dashboard
 - 📊 Real-time visualization and reporting
 - 🔧 Configurable store layout and zones
+- 🤖 OpenCV 4.13.0 compatible image processing
+- 🚀 GPU acceleration with CUDA support
 
 ## 🛠️ Installation
 
@@ -59,6 +71,27 @@ A comprehensive computer vision-based retail analytics system that tracks custom
    ```
 
 ## 🚀 Usage
+
+### Employee Management System
+
+1. **Register New Employee**
+   ```bash
+   python register_employee.py
+   ```
+   
+   Options available:
+   - Register from webcam capture
+   - Register from image upload (JPG/PNG)
+   - List all registered employees
+   - Remove employees
+   - View active shifts
+
+2. **Employee Detection Protocol**
+   - **First Detection**: OSNet face recognition identifies employee
+   - **Body Feature Capture**: System captures and stores body features for 12 hours
+   - **Subsequent Detection**: Body features used for identification (no face scan needed)
+   - **Display**: Employee names shown instead of generic IDs
+   - **Exclusion**: Employees automatically excluded from customer analytics
 
 ### Running the Tracking System
 
@@ -119,6 +152,9 @@ p_count/
 ├── database_manager.py        # Database operations
 ├── store_config.py            # Store layout configuration
 ├── analytics_dashboard.py     # Web dashboard
+├── employee_exclusion.py      # Employee detection & management system
+├── register_employee.py       # Employee registration utility
+├── professional_reid.py       # OSNet Re-ID model handler
 ├── database_schema.sql        # PostgreSQL schema
 ├── bytetrack_retail.yaml      # ByteTrack configuration
 ├── requirements.txt           # Python dependencies
@@ -130,6 +166,24 @@ p_count/
 ```
 
 ## ⚙️ Configuration
+
+### Employee Detection Configuration
+
+Employee detection settings in `employee_exclusion.py`:
+
+```python
+# Face recognition threshold
+self.face_similarity_threshold = 0.6
+
+# Body feature matching threshold  
+self.body_similarity_threshold = 0.5
+
+# Shift duration (12 hours)
+self.shift_duration = 12 * 60 * 60  # seconds
+
+# OSNet model path
+self.osnet_model_path = "osnet_x1_0_msmt17.pth"
+```
 
 ### Store Layout Configuration
 
@@ -249,6 +303,34 @@ For production deployment:
    - Check Flask installation
    - Verify port availability
    - Check firewall settings
+
+### Employee Detection Issues
+
+1. **OSNet model not found**
+   ```bash
+   # Download OSNet model
+   wget https://github.com/KaiyangZhou/pytorch-reid/raw/master/reid-models/osnet_x1_0_msmt17.pth
+   ```
+
+2. **Employee registration failed**
+   - Check image quality and lighting
+   - Ensure face is clearly visible
+   - Try different image format (JPG/PNG)
+
+3. **Body feature extraction errors**
+   - Verify OpenCV 4.13.0 compatibility
+   - Check image preprocessing pipeline
+   - Ensure proper histogram calculation syntax
+
+4. **Employee not detected**
+   - Adjust face similarity threshold (0.5-0.7)
+   - Check body feature matching threshold (0.4-0.6)
+   - Verify employee shift is still active (12-hour window)
+
+5. **False positive detections**
+   - Increase similarity thresholds
+   - Add more training data for employees
+   - Check lighting and camera angles
 
 ### Performance Optimization
 
